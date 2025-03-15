@@ -24,9 +24,9 @@ def load_image(file_path, github_url):
         else:
             return None
 
-# 📅 **Monthly Seasonality Page**
+# **Monthly Seasonality Page**
 if seasonality_type == "Monthly Seasonality":
-    st.title("📊 Monthly Seasonality Overview")
+    st.title("Monthly Seasonality Overview")
 
     # Display Monthly Seasonality for All Pairs
     for pair in currency_pairs:
@@ -40,9 +40,9 @@ if seasonality_type == "Monthly Seasonality":
         else:
             st.warning(f"⚠️ Image not found: {file_path}")
 
-# 📈 **Daily Seasonality Page**
+# **Daily Seasonality Page**
 else:
-    st.title("📅 Daily Seasonality Analysis")
+    st.title("Daily Seasonality Analysis")
 
     # Dropdown to select currency pair
     selected_pair = st.selectbox("Choose a currency pair:", currency_pairs)
