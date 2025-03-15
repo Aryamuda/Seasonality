@@ -4,7 +4,6 @@ from PIL import Image
 import requests
 from io import BytesIO
 
-# Base directory (gunakan path relatif supaya fleksibel di deployment)
 base_dir = Path(__file__).parent / "Seasonality"
 
 # List of currency pairs
@@ -15,7 +14,7 @@ months = {
     "September": 9, "October": 10, "November": 11, "December": 12
 }
 
-# Sidebar: Choose Seasonality Type
+# Sidebar
 seasonality_type = st.sidebar.radio("Select Analysis Type", ["Monthly Seasonality", "Daily Seasonality", "View by Month"])
 
 def load_image(file_path, github_url):
@@ -31,7 +30,7 @@ def load_image(file_path, github_url):
 
 # **Monthly Seasonality Page**
 if seasonality_type == "Monthly Seasonality":
-    st.title("📊 Monthly Seasonality Overview")
+    st.title("Monthly Seasonality Overview")
 
     # Display Monthly Seasonality for All Pairs
     for pair in currency_pairs:
@@ -43,11 +42,11 @@ if seasonality_type == "Monthly Seasonality":
             st.image(image, caption=f"{pair} Monthly Seasonality", use_container_width=True)
             st.markdown("---")
         else:
-            st.warning(f"⚠️ Image not found: {file_path}")
+            st.warning(f"Image not found: {file_path}")
 
 # **Daily Seasonality Page**
 elif seasonality_type == "Daily Seasonality":
-    st.title("📅 Daily Seasonality Analysis")
+    st.title("Daily Seasonality Analysis")
 
     # Dropdown to select currency pair
     selected_pair = st.selectbox("Choose a currency pair:", currency_pairs)
@@ -64,11 +63,11 @@ elif seasonality_type == "Daily Seasonality":
             st.image(image, caption=f"{selected_pair} - Month {month}", use_container_width=True)
             st.markdown("---")
         else:
-            st.warning(f"⚠️ Image not found: {file_path}")
+            st.warning(f"Image not found: {file_path}")
 
 # **View by Month Page**
 else:
-    st.title("📆 View by Month")
+    st.title("View by Month")
     
     # Dropdown to select month
     selected_month = st.selectbox("Choose a month:", list(months.keys()))
@@ -85,4 +84,4 @@ else:
             st.image(image, caption=f"{pair} - {selected_month}", use_container_width=True)
             st.markdown("---")
         else:
-            st.warning(f"⚠️ Image not found: {file_path}")
+            st.warning(f"Image not found: {file_path}")
