@@ -6,7 +6,7 @@ import requests
 from io import BytesIO
 
 base_dir = Path(__file__).parent / "Seasonality"
-excel_path = Path(__file__).parent / "TP_SL_Data.xlsx"
+excel_path = Path(__file__).parent / "TP_SL_Data.csv"
 
 # List of currency pairs
 currency_pairs = ["AUDUSD", "EURUSD", "GBPJPY", "GBPUSD", "NZDUSD", "USDCAD", "USDJPY", "XAUUSD"]
@@ -26,18 +26,17 @@ def load_image(file_path, github_url):
             return Image.open(BytesIO(response.content))
         else:
             return None
+
 def load_tp_sl_data():
-    """Load TP/SL data from GitHub."""
-    github_url = "https://raw.githubusercontent.com/Aryamuda/Seasonality/main/TP_SL_Data.xlsx"
+    """Load TP/SL data from CSV file."""
+    csv_url = "https://raw.githubusercontent.com/Aryamuda/Seasonality/main/TP_SL_Data.csv"
     try:
-        df = pd.read_excel(github_url, engine="openpyxl")
+        df = pd.read_csv(csv_url)
         df["Date"] = pd.to_datetime(df["Date"], errors='coerce')
-        return df.dropna(subset=["Date"])  # Drop rows dengan tanggal tidak valid
+        return df.dropna(subset=["Date"])  # Drop rows with invalid dates
     except Exception as e:
         st.error(f"Failed to load TP/SL data: {e}")
         return pd.DataFrame(columns=["Date", "Pair", "Probability Up", "Probability Down", "Type"])
-
-
 
 
 # Sidebar
