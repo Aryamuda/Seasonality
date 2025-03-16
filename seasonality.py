@@ -65,12 +65,17 @@ if seasonality_type == "View by Month":
             with st.expander(f"TP/SL for {pair} in {selected_month}"):
                 st.table(filtered_data[["Date", "Pair", "Probability Up", "Probability Down", "Type"]])
 
-# **Entry Section Page**
+# **Entry Section Page (Filtered by Month)**
 if seasonality_type == "Entry Section":
     st.title("Entry Section")
+    selected_month = st.selectbox("Choose a month for entries:", list(months.keys()), key="entry_month")
+    month_num = months[selected_month]
+    
     tp_sl_data = load_tp_sl_data()
-    st.subheader("All Entries")
-    if not tp_sl_data.empty:
-        st.table(tp_sl_data[["Date", "Pair", "Probability Up", "Probability Down", "Type"]])
+    filtered_entries = tp_sl_data[tp_sl_data["Date"].dt.month == month_num]
+    
+    if not filtered_entries.empty:
+        st.subheader(f"Entries for {selected_month}")
+        st.table(filtered_entries[["Date", "Pair", "Probability Up", "Probability Down", "Type"]])
     else:
-        st.warning("No data available.")
+        st.warning(f"No entries found for {selected_month}.")
