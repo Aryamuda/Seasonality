@@ -28,18 +28,22 @@ def load_image(file_path, github_url):
             return None
 
 def load_tp_sl_data():
-    """Load TP/SL data from GitHub Excel file."""
-    github_url = "https://github.com/Aryamuda/Seasonality/raw/main/TP_SL_Data.xlsx"
-
-    try:
+    """Download TP/SL data from GitHub and load it."""
+    github_url = "https://raw.githubusercontent.com/Aryamuda/Seasonality/main/TP_SL_Data.xlsx"
+    
+    if not excel_path.exists():
         response = requests.get(github_url)
-        response.raise_for_status()  # Raise error if request fails
-        df = pd.read_excel(BytesIO(response.content), engine="openpyxl")
-        df["Date"] = pd.to_datetime(df["Date"], errors="coerce")
-        return df.dropna(subset=["Date"])  # Drop rows with invalid dates
-    except Exception as e:
-        st.error(f"Failed to load TP/SL data: {e}")
-        return pd.DataFrame(columns=["Date", "Pair", "Probability Up", "Probability Down", "Type"])
+        if response.status_code == 200:
+            with open(excel_path, "wb") as f:
+                f.write(response.content)
+        else:
+            st.error("Failed to download TP/SL data from GitHub.")
+            return pd.DataFrame(columns=["Date", "Pair", "Probability Up", "Probability Down", "Type"])
+
+    df = pd.read_excel(excel_path, engine="openpyxl")
+    df["Date"] = pd.to_datetime(df["Date"], errors='coerce')
+    return df.dropna(subset=["Date"])
+
 
 
 # Sidebar
