@@ -30,9 +30,11 @@ def load_image(file_path, github_url):
 def load_tp_sl_data():
     """Load TP/SL data from Excel file."""
     if excel_path.exists():
-        return pd.read_excel(excel_path)
+        df = pd.read_excel(excel_path)
+        df["Date"] = pd.to_datetime(df["Date"], errors='coerce')
+        return df.dropna(subset=["Date"])  # Drop rows with invalid dates
     else:
-        return pd.DataFrame(columns=["Date", "Pair", "Type", "Level"])
+        return pd.DataFrame(columns=["Date", "Pair", "Probability Up", "Probability Down", "Type"])
 
 # Sidebar
 seasonality_type = st.sidebar.radio("Select Analysis Type", ["Monthly Seasonality", "Daily Seasonality", "View by Month"])
@@ -58,7 +60,7 @@ if seasonality_type == "View by Month":
             st.warning(f"Image not found: {file_path}")
         
         # Filter TP/SL Data for this month and pair
-        filtered_data = tp_sl_data[(pd.to_datetime(tp_sl_data['Date']).dt.month == month_num) & (tp_sl_data['Pair'] == pair)]
+        filtered_data = tp_sl_data[(tp_sl_data["Date"].dt.month == month_num) & (tp_sl_data["Pair"] == pair)]
         if not filtered_data.empty:
             with st.expander(f"TP/SL for {pair} in {selected_month}"):
-                st.table(filtered_data)
+                st.table(filtered_data[["Date", "Pair", "Probability Up", "Probability Down", "Type"]])
