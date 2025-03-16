@@ -55,22 +55,17 @@ if seasonality_type == "Monthly Seasonality":
             st.warning(f"Image not found: {file_path}")
 
 # **Daily Seasonality Page**
-elif seasonality_type == "Daily Seasonality":
-    st.title("📈 Daily Seasonality Analysis")
-
-    selected_pair = st.selectbox("Choose a currency pair:", currency_pairs)
-    st.subheader(f"{selected_pair} Bullish Probabilities by Month")
-
-    pair_dir = base_dir / selected_pair
-
-    if pair_dir.exists():
-        for month in range(1, 13):
-            file_path = pair_dir / f"{selected_pair} bullish_probability_month_{month}.png"
-            if file_path.exists():
-                st.image(Image.open(file_path), caption=f"{selected_pair} - Month {month}", use_container_width=True)
-                st.markdown("---")  # Add separator for better spacing
-    else:
-        st.warning(f"No seasonality data found for {selected_pair}")
+if seasonality_type == "Daily Seasonality":
+    st.title("Daily Seasonality")
+    for pair in currency_pairs:
+        file_path = base_dir / pair / f"{pair}_daily_seasonality.png"
+        github_url = f"https://raw.githubusercontent.com/Aryamuda/Seasonality/main/Seasonality/{pair}/{pair}_daily_seasonality.png"
+        image = load_image(file_path, github_url)
+        if image:
+            st.image(image, caption=f"{pair} - Daily Seasonality", use_container_width=True)
+            st.markdown("---")
+        else:
+            st.warning(f"Image not found: {file_path}")
 
 # **View by Month Page**
 if seasonality_type == "View by Month":
@@ -100,11 +95,17 @@ if seasonality_type == "View by Month":
 if seasonality_type == "Entry Section":
     st.title("Entry Section")
     selected_month = st.selectbox("Choose a month for entries:", list(months.keys()))
+    selected_pair = st.selectbox("Choose a currency pair:", ["All"] + currency_pairs)
     month_num = months[selected_month]
     
     filtered_entries = tp_sl_data[tp_sl_data["Date"].dt.month == month_num]
     
+    if selected_pair != "All":
+        filtered_entries = filtered_entries[filtered_entries["Pair"] == selected_pair]
+    
     if not filtered_entries.empty:
-        st.table(filtered_entries[["Date", "Pair", "Probability Up", "Probability Down", "Type"]])
+        for date, group in filtered_entries.groupby(filtered_entries["Date"].dt.date):
+            st.subheader(f"Entries for {date}")
+            st.table(group[["Date", "Pair", "Probability Up", "Probability Down", "Type"]].reset_index(drop=True))
     else:
-        st.warning("No data available for the selected month.")
+        st.warning("No data available for the selected filters.")
