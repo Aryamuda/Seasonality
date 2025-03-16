@@ -42,23 +42,16 @@ seasonality_type = st.sidebar.radio("Select Analysis Type", ["Monthly Seasonalit
 
 # **Monthly Seasonality Page**
 if seasonality_type == "Monthly Seasonality":
-    st.title("📅 Monthly Seasonality Analysis")
-
-    selected_pair = st.selectbox("Choose a currency pair:", currency_pairs)
-    selected_month = st.selectbox("Choose a month:", list(months.keys()))
-    month_num = months[selected_month]
-
-    st.subheader(f"{selected_pair} Bullish Probabilities for {selected_month}")
-
-    file_path = base_dir / selected_pair / f"{selected_pair} bullish_probability_month_{month_num}.png"
-    github_url = f"https://raw.githubusercontent.com/Aryamuda/Seasonality/main/Seasonality/{selected_pair}/{selected_pair} bullish_probability_month_{month_num}.png"
-
-    image = load_image(file_path, github_url)
-    if image:
-        st.image(image, caption=f"{selected_pair} - {selected_month}", use_container_width=True)
-    else:
-        st.warning(f"Image not found: {file_path}")
-
+    st.title("Monthly Seasonality")
+    for pair in currency_pairs:
+        file_path = base_dir / pair / f"{pair}_monthly_seasonality.png"
+        github_url = f"https://raw.githubusercontent.com/Aryamuda/Seasonality/main/Seasonality/{pair}/{pair}_monthly_seasonality.png"
+        image = load_image(file_path, github_url)
+        if image:
+            st.image(image, caption=f"{pair} - Monthly Seasonality", use_container_width=True)
+            st.markdown("---")
+        else:
+            st.warning(f"Image not found: {file_path}")
 # **Daily Seasonality Page**
 elif seasonality_type == "Daily Seasonality":
     st.title("📈 Daily Seasonality Analysis")
