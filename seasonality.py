@@ -4,7 +4,6 @@ from pathlib import Path
 from PIL import Image
 import requests
 from io import BytesIO
-import os
 
 base_dir = Path(__file__).parent / "Seasonality"
 csv_path = Path(__file__).parent / "TP_SL_Data.csv"
@@ -40,6 +39,8 @@ def load_tp_sl_data():
 # Sidebar
 seasonality_type = st.sidebar.radio("Select Analysis Type", ["Monthly Seasonality", "Daily Seasonality", "View by Month", "Entry Section"])
 
+tp_sl_data = load_tp_sl_data()
+
 # **Monthly Seasonality Page**
 if seasonality_type == "Monthly Seasonality":
     st.title("Monthly Seasonality")
@@ -52,44 +53,38 @@ if seasonality_type == "Monthly Seasonality":
             st.markdown("---")
         else:
             st.warning(f"Image not found: {file_path}")
+
 # **Daily Seasonality Page**
-elif seasonality_type == "Daily Seasonality":
-    st.title("📈 Daily Seasonality Analysis")
-
-    selected_pair = st.selectbox("Choose a currency pair:", currency_pairs)
-    st.subheader(f"{selected_pair} Bullish Probabilities by Month")
-
-    pair_dir = base_dir / selected_pair
-
-    if pair_dir.exists():
-        for month in range(1, 13):
-            file_path = pair_dir / f"{selected_pair} bullish_probability_month_{month}.png"
-            if file_path.exists():
-                st.image(Image.open(file_path), caption=f"{selected_pair} - Month {month}", use_container_width=True)
-                st.markdown("---")  # Add separator for better spacing
-    else:
-        st.warning(f"No seasonality data found for {selected_pair}")
+if seasonality_type == "Daily Seasonality":
+    st.title("Daily Seasonality")
+    for pair in currency_pairs:
+        file_path = base_dir / pair / f"{pair}_daily_seasonality.png"
+        github_url = f"https://raw.githubusercontent.com/Aryamuda/Seasonality/main/Seasonality/{pair}/{pair}_daily_seasonality.png"
+        image = load_image(file_path, github_url)
+        if image:
+            st.image(image, caption=f"{pair} - Daily Seasonality", use_container_width=True)
+            st.markdown("---")
+        else:
+            st.warning(f"Image not found: {file_path}")
 
 # **View by Month Page**
-elif seasonality_type == "View by Month":
+if seasonality_type == "View by Month":
     st.title("View by Month")
     selected_month = st.selectbox("Choose a month:", list(months.keys()))
     month_num = months[selected_month]
     st.subheader(f"Bullish Probabilities for {selected_month}")
-
-    tp_sl_data = load_tp_sl_data()
-
+    
     for pair in currency_pairs:
         file_path = base_dir / pair / f"{pair} bullish_probability_month_{month_num}.png"
         github_url = f"https://raw.githubusercontent.com/Aryamuda/Seasonality/main/Seasonality/{pair}/{pair} bullish_probability_month_{month_num}.png"
-
+        
         image = load_image(file_path, github_url)
         if image:
             st.image(image, caption=f"{pair} - {selected_month}", use_container_width=True)
             st.markdown("---")
         else:
             st.warning(f"Image not found: {file_path}")
-
+        
         # Filter TP/SL Data for this month and pair
         filtered_data = tp_sl_data[(tp_sl_data["Date"].dt.month == month_num) & (tp_sl_data["Pair"] == pair)]
         if not filtered_data.empty:
@@ -97,11 +92,14 @@ elif seasonality_type == "View by Month":
                 st.table(filtered_data[["Date", "Pair", "Probability Up", "Probability Down", "Type"]])
 
 # **Entry Section Page**
-elif seasonality_type == "Entry Section":
+if seasonality_type == "Entry Section":
     st.title("Entry Section")
-    tp_sl_data = load_tp_sl_data()
-    st.subheader("All Entries")
-    if not tp_sl_data.empty:
-        st.table(tp_sl_data[["Date", "Pair", "Probability Up", "Probability Down", "Type"]])
+    selected_month = st.selectbox("Choose a month for entries:", list(months.keys()))
+    month_num = months[selected_month]
+    
+    filtered_entries = tp_sl_data[tp_sl_data["Date"].dt.month == month_num]
+    
+    if not filtered_entries.empty:
+        st.table(filtered_entries[["Date", "Pair", "Probability Up", "Probability Down", "Type"]])
     else:
-        st.warning("No data available.")
+        st.warning("No data available for the selected month.")
