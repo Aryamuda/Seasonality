@@ -26,23 +26,17 @@ def load_image(file_path, github_url):
             return Image.open(BytesIO(response.content))
         else:
             return None
-
 def load_tp_sl_data():
-    """Download TP/SL data from GitHub and load it."""
+    """Load TP/SL data from GitHub."""
     github_url = "https://raw.githubusercontent.com/Aryamuda/Seasonality/main/TP_SL_Data.xlsx"
-    
-    if not excel_path.exists():
-        response = requests.get(github_url)
-        if response.status_code == 200:
-            with open(excel_path, "wb") as f:
-                f.write(response.content)
-        else:
-            st.error("Failed to download TP/SL data from GitHub.")
-            return pd.DataFrame(columns=["Date", "Pair", "Probability Up", "Probability Down", "Type"])
+    try:
+        df = pd.read_excel(github_url, engine="openpyxl")
+        df["Date"] = pd.to_datetime(df["Date"], errors='coerce')
+        return df.dropna(subset=["Date"])  # Drop rows dengan tanggal tidak valid
+    except Exception as e:
+        st.error(f"Failed to load TP/SL data: {e}")
+        return pd.DataFrame(columns=["Date", "Pair", "Probability Up", "Probability Down", "Type"])
 
-    df = pd.read_excel(excel_path, engine="openpyxl")
-    df["Date"] = pd.to_datetime(df["Date"], errors='coerce')
-    return df.dropna(subset=["Date"])
 
 
 
