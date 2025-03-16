@@ -55,17 +55,22 @@ if seasonality_type == "Monthly Seasonality":
             st.warning(f"Image not found: {file_path}")
 
 # **Daily Seasonality Page**
-if seasonality_type == "Daily Seasonality":
-    st.title("Daily Seasonality")
-    for pair in currency_pairs:
-        file_path = base_dir / pair / f"{pair}_daily_seasonality.png"
-        github_url = f"https://raw.githubusercontent.com/Aryamuda/Seasonality/main/Seasonality/{pair}/{pair}_daily_seasonality.png"
-        image = load_image(file_path, github_url)
-        if image:
-            st.image(image, caption=f"{pair} - Daily Seasonality", use_container_width=True)
-            st.markdown("---")
-        else:
-            st.warning(f"Image not found: {file_path}")
+elif seasonality_type == "Daily Seasonality":
+    st.title("📈 Daily Seasonality Analysis")
+
+    selected_pair = st.selectbox("Choose a currency pair:", currency_pairs)
+    st.subheader(f"{selected_pair} Bullish Probabilities by Month")
+
+    pair_dir = base_dir / selected_pair
+
+    if pair_dir.exists():
+        for month in range(1, 13):
+            file_path = pair_dir / f"{selected_pair} bullish_probability_month_{month}.png"
+            if file_path.exists():
+                st.image(Image.open(file_path), caption=f"{selected_pair} - Month {month}", use_container_width=True)
+                st.markdown("---")  # Add separator for better spacing
+    else:
+        st.warning(f"No seasonality data found for {selected_pair}")
 
 # **View by Month Page**
 if seasonality_type == "View by Month":
