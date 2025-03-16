@@ -1,10 +1,12 @@
 import streamlit as st
+import pandas as pd
 from pathlib import Path
 from PIL import Image
 import requests
 from io import BytesIO
 
 base_dir = Path(__file__).parent / "Seasonality"
+excel_path = Path(__file__).parent / "TP_SL_Data.xlsx"
 
 # List of currency pairs
 currency_pairs = ["AUDUSD", "EURUSD", "GBPJPY", "GBPUSD", "NZDUSD", "USDCAD", "USDJPY", "XAUUSD"]
@@ -13,9 +15,6 @@ months = {
     "May": 5, "June": 6, "July": 7, "August": 8,
     "September": 9, "October": 10, "November": 11, "December": 12
 }
-
-# Sidebar
-seasonality_type = st.sidebar.radio("Select Analysis Type", ["Monthly Seasonality", "Daily Seasonality", "View by Month"])
 
 def load_image(file_path, github_url):
     """Load image from local file or GitHub if missing."""
@@ -28,53 +27,25 @@ def load_image(file_path, github_url):
         else:
             return None
 
-# **Monthly Seasonality Page**
-if seasonality_type == "Monthly Seasonality":
-    st.title("Monthly Seasonality Overview")
+def load_tp_sl_data():
+    """Load TP/SL data from Excel file."""
+    if excel_path.exists():
+        return pd.read_excel(excel_path)
+    else:
+        return pd.DataFrame(columns=["Date", "Pair", "Type", "Level"])
 
-    # Display Monthly Seasonality for All Pairs
-    for pair in currency_pairs:
-        file_path = base_dir / pair / f"{pair}_monthly_seasonality.png"
-        github_url = f"https://raw.githubusercontent.com/Aryamuda/Seasonality/main/Seasonality/{pair}/{pair}_monthly_seasonality.png"
-        
-        image = load_image(file_path, github_url)
-        if image:
-            st.image(image, caption=f"{pair} Monthly Seasonality", use_container_width=True)
-            st.markdown("---")
-        else:
-            st.warning(f"Image not found: {file_path}")
-
-# **Daily Seasonality Page**
-elif seasonality_type == "Daily Seasonality":
-    st.title("Daily Seasonality Analysis")
-
-    # Dropdown to select currency pair
-    selected_pair = st.selectbox("Choose a currency pair:", currency_pairs)
-    st.subheader(f"{selected_pair} Bullish Probabilities by Month")
-
-    pair_dir = base_dir / selected_pair
-
-    for month in range(1, 13):
-        file_path = pair_dir / f"{selected_pair} bullish_probability_month_{month}.png"
-        github_url = f"https://raw.githubusercontent.com/Aryamuda/Seasonality/main/Seasonality/{selected_pair}/{selected_pair} bullish_probability_month_{month}.png"
-        
-        image = load_image(file_path, github_url)
-        if image:
-            st.image(image, caption=f"{selected_pair} - Month {month}", use_container_width=True)
-            st.markdown("---")
-        else:
-            st.warning(f"Image not found: {file_path}")
+# Sidebar
+seasonality_type = st.sidebar.radio("Select Analysis Type", ["Monthly Seasonality", "Daily Seasonality", "View by Month"])
 
 # **View by Month Page**
-else:
+if seasonality_type == "View by Month":
     st.title("View by Month")
-    
-    # Dropdown to select month
     selected_month = st.selectbox("Choose a month:", list(months.keys()))
     month_num = months[selected_month]
-
     st.subheader(f"Bullish Probabilities for {selected_month}")
-
+    
+    tp_sl_data = load_tp_sl_data()
+    
     for pair in currency_pairs:
         file_path = base_dir / pair / f"{pair} bullish_probability_month_{month_num}.png"
         github_url = f"https://raw.githubusercontent.com/Aryamuda/Seasonality/main/Seasonality/{pair}/{pair} bullish_probability_month_{month_num}.png"
@@ -85,3 +56,9 @@ else:
             st.markdown("---")
         else:
             st.warning(f"Image not found: {file_path}")
+        
+        # Filter TP/SL Data for this month and pair
+        filtered_data = tp_sl_data[(pd.to_datetime(tp_sl_data['Date']).dt.month == month_num) & (tp_sl_data['Pair'] == pair)]
+        if not filtered_data.empty:
+            with st.expander(f"TP/SL for {pair} in {selected_month}"):
+                st.table(filtered_data)
