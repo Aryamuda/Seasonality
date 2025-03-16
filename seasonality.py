@@ -39,14 +39,40 @@ def load_tp_sl_data():
 # Sidebar
 seasonality_type = st.sidebar.radio("Select Analysis Type", ["Monthly Seasonality", "Daily Seasonality", "View by Month", "Entry Section"])
 
+tp_sl_data = load_tp_sl_data()
+
+# **Monthly Seasonality Page**
+if seasonality_type == "Monthly Seasonality":
+    st.title("Monthly Seasonality")
+    for pair in currency_pairs:
+        file_path = base_dir / pair / f"{pair}_monthly_seasonality.png"
+        github_url = f"https://raw.githubusercontent.com/Aryamuda/Seasonality/main/Seasonality/{pair}/{pair}_monthly_seasonality.png"
+        image = load_image(file_path, github_url)
+        if image:
+            st.image(image, caption=f"{pair} - Monthly Seasonality", use_container_width=True)
+            st.markdown("---")
+        else:
+            st.warning(f"Image not found: {file_path}")
+
+# **Daily Seasonality Page**
+if seasonality_type == "Daily Seasonality":
+    st.title("Daily Seasonality")
+    for pair in currency_pairs:
+        file_path = base_dir / pair / f"{pair}_daily_seasonality.png"
+        github_url = f"https://raw.githubusercontent.com/Aryamuda/Seasonality/main/Seasonality/{pair}/{pair}_daily_seasonality.png"
+        image = load_image(file_path, github_url)
+        if image:
+            st.image(image, caption=f"{pair} - Daily Seasonality", use_container_width=True)
+            st.markdown("---")
+        else:
+            st.warning(f"Image not found: {file_path}")
+
 # **View by Month Page**
 if seasonality_type == "View by Month":
     st.title("View by Month")
     selected_month = st.selectbox("Choose a month:", list(months.keys()))
     month_num = months[selected_month]
     st.subheader(f"Bullish Probabilities for {selected_month}")
-    
-    tp_sl_data = load_tp_sl_data()
     
     for pair in currency_pairs:
         file_path = base_dir / pair / f"{pair} bullish_probability_month_{month_num}.png"
@@ -65,17 +91,11 @@ if seasonality_type == "View by Month":
             with st.expander(f"TP/SL for {pair} in {selected_month}"):
                 st.table(filtered_data[["Date", "Pair", "Probability Up", "Probability Down", "Type"]])
 
-# **Entry Section Page (Filtered by Month)**
+# **Entry Section Page**
 if seasonality_type == "Entry Section":
     st.title("Entry Section")
-    selected_month = st.selectbox("Choose a month for entries:", list(months.keys()), key="entry_month")
-    month_num = months[selected_month]
-    
-    tp_sl_data = load_tp_sl_data()
-    filtered_entries = tp_sl_data[tp_sl_data["Date"].dt.month == month_num]
-    
-    if not filtered_entries.empty:
-        st.subheader(f"Entries for {selected_month}")
-        st.table(filtered_entries[["Date", "Pair", "Probability Up", "Probability Down", "Type"]])
+    st.subheader("All Entries")
+    if not tp_sl_data.empty:
+        st.table(tp_sl_data[["Date", "Pair", "Probability Up", "Probability Down", "Type"]])
     else:
-        st.warning(f"No entries found for {selected_month}.")
+        st.warning("No data available.")
