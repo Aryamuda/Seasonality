@@ -6,7 +6,7 @@ import requests
 from io import BytesIO
 
 base_dir = Path(__file__).parent / "Seasonality"
-excel_path = Path(__file__).parent / "TP_SL_Data.csv"
+csv_path = Path(__file__).parent / "TP_SL_Data.csv"
 
 # List of currency pairs
 currency_pairs = ["AUDUSD", "EURUSD", "GBPJPY", "GBPUSD", "NZDUSD", "USDCAD", "USDJPY", "XAUUSD"]
@@ -29,18 +29,15 @@ def load_image(file_path, github_url):
 
 def load_tp_sl_data():
     """Load TP/SL data from CSV file."""
-    csv_url = "https://raw.githubusercontent.com/Aryamuda/Seasonality/main/TP_SL_Data.csv"
-    try:
-        df = pd.read_csv(csv_url)
+    if csv_path.exists():
+        df = pd.read_csv(csv_path)
         df["Date"] = pd.to_datetime(df["Date"], errors='coerce')
         return df.dropna(subset=["Date"])  # Drop rows with invalid dates
-    except Exception as e:
-        st.error(f"Failed to load TP/SL data: {e}")
+    else:
         return pd.DataFrame(columns=["Date", "Pair", "Probability Up", "Probability Down", "Type"])
 
-
 # Sidebar
-seasonality_type = st.sidebar.radio("Select Analysis Type", ["Monthly Seasonality", "Daily Seasonality", "View by Month"])
+seasonality_type = st.sidebar.radio("Select Analysis Type", ["Monthly Seasonality", "Daily Seasonality", "View by Month", "Entry Section"])
 
 # **View by Month Page**
 if seasonality_type == "View by Month":
@@ -67,3 +64,13 @@ if seasonality_type == "View by Month":
         if not filtered_data.empty:
             with st.expander(f"TP/SL for {pair} in {selected_month}"):
                 st.table(filtered_data[["Date", "Pair", "Probability Up", "Probability Down", "Type"]])
+
+# **Entry Section Page**
+if seasonality_type == "Entry Section":
+    st.title("Entry Section")
+    tp_sl_data = load_tp_sl_data()
+    st.subheader("All Entries")
+    if not tp_sl_data.empty:
+        st.table(tp_sl_data[["Date", "Pair", "Probability Up", "Probability Down", "Type"]])
+    else:
+        st.warning("No data available.")
